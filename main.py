@@ -1,6 +1,50 @@
-def main():
-    print("Hello from ai-agent-scratch-python!")
+from dotenv import load_dotenv
+from pydantic import BaseModel
+from langchain_community.llms import GPT4All
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import PydanticOutputParser
+from langchain.agents import create_tool_calling_agent, AgentExecutor
 
+MODEL_PATH="./models/mistral-7b.Q4_0.gguf"
+load_dotenv()
+
+class ResearchResponse(BaseModel):
+    topic : str
+    summamy : str
+    sources : list[str]
+    tools_used : list[str]
+
+
+
+def main():
+    llm = GPT4All(model=MODEL_PATH)
+    parser = PydanticOutputParser(pydantic_object=ResearchResponse)
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                """
+                You are a research assistant that will help generate a research paper.
+                Answer the user query and use neccessary tools.
+                Wrap the output in this format and provide no other text\n{format_instructions}
+                """,
+            ),
+            ("placeholder","{chat_history}"),
+            ("human","{query}"),
+            ("placeholder","{agent_scratchpad}"),
+
+        ]
+    ).partial(format_instructions=parser.get_format_instructions())
+
+    agent=create_tool_calling_agent(
+        llm=llm,
+        prompt=prompt,
+        tools=[]
+    )
+
+    agent_executor= AgentExecutor(agent=agent, tools=[], verbose=True)
+    raw_response=agent_executor.invoke({"query":"¿Cual es la capital de España?"})
+    print(raw_response)
 
 if __name__ == "__main__":
     main()
