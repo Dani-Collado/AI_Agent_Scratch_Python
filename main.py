@@ -3,7 +3,8 @@ from pydantic import BaseModel
 from langchain_community.llms import GPT4All
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
-from langchain.agents import create_tool_calling_agent, AgentExecutor
+from langchain.agents import create_agent
+# create_tool_calling_agent, AgentExecutor
 
 MODEL_PATH="./models/mistral-7b.Q4_0.gguf"
 load_dotenv()
@@ -13,7 +14,6 @@ class ResearchResponse(BaseModel):
     summamy : str
     sources : list[str]
     tools_used : list[str]
-
 
 
 def main():
@@ -36,15 +36,16 @@ def main():
         ]
     ).partial(format_instructions=parser.get_format_instructions())
 
-    agent=create_tool_calling_agent(
-        llm=llm,
-        prompt=prompt,
+    agent=create_agent(
+        model=llm,
+        system_prompt=prompt,
         tools=[]
     )
 
-    agent_executor= AgentExecutor(agent=agent, tools=[], verbose=True)
-    raw_response=agent_executor.invoke({"query":"¿Cual es la capital de España?"})
-    print(raw_response)
+    result =agent.invoke(
+        {"messages":[{"role":"user", "content":"¿What is the capital of Spain?"}]}
+    )
+    print(result)
 
 if __name__ == "__main__":
     main()
