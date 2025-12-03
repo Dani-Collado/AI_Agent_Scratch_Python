@@ -2,6 +2,8 @@ from langchain.agents import create_agent
 from langchain_ollama import ChatOllama
 from pydantic import BaseModel
 import requests
+from tools import search_web, search_wikipedia
+
 
 class ResearchResponse(BaseModel):
     topic: str
@@ -31,20 +33,24 @@ def main():
         timeout=120  
     )
     
+    tools_search= [search_web, search_wikipedia]
     agent = create_agent(
         model=llm,
         system_prompt="You are a research assistant. Answer questions thoroughly.",
-        tools=[],
+        tools=tools_search
     )
     
+    query= input("¿En que se le puede ayudar? ")
     print("Running agent...")
     result = agent.invoke({
-        "messages": [{"role": "user", "content": "What is the capital of Spain?"}]
+        "messages": [{"role": "user", "content": query}]
     })
 
+    print(result)
     # Obtener el último mensaje (que es el AIMessage)
     content = result['messages'][-1].content
-    print(content)
+    
+    print(f"Respuesta Limpia {content}")
     
 
 
