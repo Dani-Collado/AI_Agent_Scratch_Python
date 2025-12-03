@@ -1,9 +1,7 @@
 from langchain.agents import create_agent
 from langchain_ollama import ChatOllama
 from pydantic import BaseModel
-from dotenv import load_dotenv
-
-load_dotenv()
+import requests
 
 class ResearchResponse(BaseModel):
     topic: str
@@ -11,17 +9,35 @@ class ResearchResponse(BaseModel):
     sources: list[str]
     tools_used: list[str]
 
+def check_ollama():
+    """Check if Ollama is running."""
+    try:
+        response = requests.get("http://localhost:11434/api/tags", timeout=2)
+        return response.status_code == 200
+    except requests.exceptions.ConnectionError:
+        return False
+
 def main():
-    # Use Ollama locally - NO API KEY NEEDED
-    llm = ChatOllama(model="mistral")  # or neural-chat, llama2
+    if not check_ollama():
+        print("❌ Error: Ollama is not running!")
+        print("Start it with: ollama serve")
+        return
+    
+    print("✅ Ollama is running")
+    
+    # Use Ollama locally
+    llm = ChatOllama(
+        model="mistral",
+        timeout=120  
+    )
     
     agent = create_agent(
         model=llm,
         system_prompt="You are a research assistant. Answer questions thoroughly.",
-        tools=[],
-        response_format=ResearchResponse
+        tools=[]
     )
     
+    print("Running agent...")
     result = agent.invoke({
         "messages": [{"role": "user", "content": "What is the capital of Spain?"}]
     })

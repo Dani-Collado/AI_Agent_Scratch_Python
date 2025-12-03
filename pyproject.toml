@@ -8,6 +8,7 @@ dependencies = [
     "gpt4all>=2.8.2",
     "langchain>=1.0.8",
     "langchain-community>=0.4.1",
+    "langchain-ollama>=1.0.0",
     "pydantic>=2.12.4",
     "python-dotenv>=1.2.1",
     "wikipedia>=1.4.0",
