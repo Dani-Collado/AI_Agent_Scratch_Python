@@ -34,15 +34,19 @@ def main():
     agent = create_agent(
         model=llm,
         system_prompt="You are a research assistant. Answer questions thoroughly.",
-        tools=[]
+        tools=[],
     )
     
     print("Running agent...")
     result = agent.invoke({
         "messages": [{"role": "user", "content": "What is the capital of Spain?"}]
     })
+
+    # Obtener el último mensaje (que es el AIMessage)
+    content = result['messages'][-1].content
+    print(content)
     
-    print(result)
+
 
 if __name__ == "__main__":
     main()
