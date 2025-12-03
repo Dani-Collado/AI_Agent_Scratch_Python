@@ -1,27 +1,27 @@
 from langchain.agents import create_agent
-from langchain_community.llms import GPT4All
+from langchain_ollama import ChatOllama
 from pydantic import BaseModel
+from dotenv import load_dotenv
 
-MODEL_PATH="./models/mistral-7b.Q4_0.gguf"
+load_dotenv()
 
 class ResearchResponse(BaseModel):
     topic: str
-    summary: str  # Fixed typo: was "summamy"
+    summary: str
     sources: list[str]
     tools_used: list[str]
 
 def main():
-    llm = GPT4All(model=MODEL_PATH)
+    # Use Ollama locally - NO API KEY NEEDED
+    llm = ChatOllama(model="mistral")  # or neural-chat, llama2
     
-    # Simple string prompt - no ChatPromptTemplate needed
     agent = create_agent(
         model=llm,
         system_prompt="You are a research assistant. Answer questions thoroughly.",
-        tools=[],  # Add actual tools here if needed
-        response_format=ResearchResponse  # For structured output
+        tools=[],
+        response_format=ResearchResponse
     )
     
-    # Just pass messages - no need for chat_history placeholder
     result = agent.invoke({
         "messages": [{"role": "user", "content": "What is the capital of Spain?"}]
     })
